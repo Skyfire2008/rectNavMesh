@@ -1,5 +1,30 @@
 \documentclass{article}
 
 \begin{document}
-	Hello world!
+\section{Motivation \& Problem Statement}
+\section{Expected Results/Goal of the Work}
+\section{Methodology}
+\section{State of the Art}
+
+\subsection{Pathfinding algorithms}
+JPS(jump point search)\cite{harabor2011online} is a modification of A* specifically for uniform grids with uniform movement cost. It achieves a speed-up by performing long straight "jumps" and only expanding the nodes where the jump ends (referred to as "\emph{jump points}"). In the tests conducted by the authors of the paper, it managed to be faster than A* by 25-30 times. The same authors improved the algorithm even further by precomputing jump points \cite{harabor2014improving}, using bitwise operations to process whole blocks of tiles at once when scanning for jump points and improving the pruning rules.\\
+
+HPA*(hierarchical pathfinding A*)\cite{botea2004near} subdivides the map \emph{clusters}: equally sized disjoint squares. It then detects \emph{entrances}, obstacle-free segments along the borders of adjacent clusters. After that, it builds an abstract representation of the map as a graph with entrances as nodes and edges connecting them if they belong to the same cluster and there exists a path between them or if they belong to neighbouring clusters and are separated by the border. This graph is used to calculate the abstract path which is then refined by finding paths between every two consecutive entrances within clusters using the actual map. This method can achieve a 10x speed-up, but requires preprocessing and tends to generate suboptimal paths. \\
+
+There are also derivative algorithms of HPA*, such as HAA*(hierarchical annotated A*)\cite{harabor2008hierarchical}, which takes agent size and traversal capabilities(e.g. can traverse ground but cannot traverse swamp) into account by computing clearance maps for every agent capability, annotating the edges between clusters with maximum clearance and required capabilities. Another algorithm is DHPA*(Dynamic HPA*)\cite{kring2010dhpa} which caches paths from every tile of a cluster to abstract nodes in it and then uses those paths for low-level pathfinding, which allows it to achieve a 10 times speed-up compared to regular HPA*. And if the map is altered, only the caches for the affected clusters need to be recalculated.
+
+%Polyanya
+
+\subsection{Navmesh generation}
+
+\section{Relevance to the Visual Computing Curriculum}
+\begin{itemize}
+	\item 186.122 Algorithmic Geometry
+	\item 186.814 Algorithmics
+	\item 104.283 Discrete Mathematics for Computer Science
+\end{itemize}
+
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{bibliography}
 \end{document}
