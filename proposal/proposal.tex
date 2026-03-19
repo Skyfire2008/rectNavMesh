@@ -2,12 +2,34 @@
 
 \begin{document}
 \section{Motivation \& Problem Statement}
+\begin{enumerate}
+	\item Grid-based levels are still popular in games, specifically strategies, role-playing games and roguelikes.
+	\item Those genres are the ones that also need pathfinding.
+	\item Pathfinding can be time-intensive, especially for large levels.
+	\item Many ways to accelerate it exist, such as navigation meshes.
+	\item Traditionally navmeshes are triangular, since games use polygons and walkable area can be represented as a large polygon and triangulated, triangulation always exists and for a given polygon corner count there's a fixed number of triangles.
+	\item But what if we can make a rectangle-based navmesh specifically for grid-based maps. Our early experiments show a drastically reduced amount of nodes, fewer nodes - faster search.
+	\item Problem: generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$\cite{eppstein2009graph} for minimum number of partitions.
+\end{enumerate}
 
 \section{Expected Results/Goal of the Work}
 \section{Methodology}
+\begin{enumerate}
+	\item Literature review. \\
+	To begin with, an extensive survey of existing algorithms will be conducted in order to determine their strengths and weaknesses.
+	\item Formalization and algorithm design. \\
+	In this step we will decide on the algorithm's capabilities, design it and determine the map representation that it operates on. Also, we will choose map types (e.g. maze, dungeon, cave, etc.) to conduct the benchmarking on as well as selecting the established algorithms to serve as a performance baseline.
+	\item Implementation. \\
+	Actually implementing the software, including the rectangular decomposition algorithm, pathfinding algorithm, and the benchmarking framework. If necessary - also the baseline algorithms and map generators. The programming language is C++.
+	\item Benchmarking. \\
+	Run our algorithm and the selected baseline algorithms and measure the runtimes and memory usage for different map types, sizes and densities.
+	\item Evaluation. \\
+	Using the measurements from the previous step, a statistical analysis will be conducted to determine how well our algorithm performs, and in which cases it offers an advantage over established methods.
+\end{enumerate}
+
 \section{State of the Art}
 
-\subsection{Pathfinding algorithms}
+\subsection{Pathfinding on a grid}
 JPS(jump point search)\cite{harabor2011online} is a modification of A* specifically for uniform grids with uniform movement cost. It achieves a speed-up by performing long straight "jumps" and only expanding the nodes where the jump ends (referred to as "\emph{jump points}"). In the tests conducted by the authors of the paper, it managed to be faster than A* by 25-30 times. The same authors improved the algorithm even further by precomputing jump points \cite{harabor2014improving}, using bitwise operations to process whole blocks of tiles at once when scanning for jump points and improving the pruning rules.\\
 
 HPA*(hierarchical pathfinding A*)\cite{botea2004near} subdivides the map \emph{clusters}: equally sized disjoint squares. It then detects \emph{entrances}, obstacle-free segments along the borders of adjacent clusters. After that, it builds an abstract representation of the map as a graph with entrances as nodes and edges connecting them if they belong to the same cluster and there exists a path between them or if they belong to neighbouring clusters and are separated by the border. This graph is used to calculate the abstract path which is then refined by finding paths between every two consecutive entrances within clusters using the actual map. This method can achieve a 10x speed-up, but requires preprocessing and tends to generate suboptimal paths. \\
@@ -16,16 +38,19 @@ There are also derivative algorithms of HPA*, such as HAA*(hierarchical annotate
 
 %Polyanya
 
-\subsection{Navmeshes}
+\subsection{Navigation meshes}
 NEOGEN\cite{oliva2013neogen}
 
 ECM(explicit corridor maps)\cite{geraerts2010planning} is a navmesh represented as a graph whose edges are arcs of the medial axis of the walkable space and vertices - points where they connect, also annotated with distances to the closest obstacle, allowing the the ECM to take clearances into account.
 
 \section{Relevance to the Visual Computing Curriculum}
-\begin{itemize}
+This thesis deals with many areas of computer science: algorithms and data structures, robotics and motion planning, graph theory, computational geometry. Not all of them are covered by the visual computing master programme, but the following courses are the most relevant ones:
+
+\begin{itemize}	
 	\item 186.122 Algorithmic Geometry
 	\item 186.814 Algorithmics
 	\item 104.283 Discrete Mathematics for Computer Science
+	\item 192.162 Heuristic Optimization Techniques
 \end{itemize}
 
 \nocite{*}
