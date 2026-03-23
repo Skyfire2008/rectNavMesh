@@ -9,39 +9,45 @@
 	\item Many ways to accelerate it exist, such as navigation meshes.
 	\item Traditionally navmeshes are triangular, since games use polygons and walkable area can be represented as a large polygon and triangulated, triangulation always exists and for a given polygon corner count there's a fixed number of triangles.
 	\item But what if we can make a rectangle-based navmesh specifically for grid-based maps. Our early experiments show a drastically reduced amount of nodes, fewer nodes - faster search.
-	\item Problem: generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$\cite{eppstein2009graph} for minimum number of partitions.
+	\item Problem: generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$~\cite{eppstein2009graph} for minimum number of partitions.
 \end{enumerate}
 
 \section{Expected Results/Goal of the Work}
 \section{Methodology}
 \begin{enumerate}
-	\item Literature review. \\
+	\item \textbf{Literature review.} \\
 	To begin with, an extensive survey of existing algorithms will be conducted in order to determine their strengths and weaknesses.
-	\item Formalization and algorithm design. \\
+	\item \textbf{Formalization and algorithm design.} \\
 	In this step we will decide on the algorithm's capabilities, design it and determine the map representation that it operates on. Also, we will choose map types (e.g. maze, dungeon, cave, etc.) to conduct the benchmarking on as well as selecting the established algorithms to serve as a performance baseline.
-	\item Implementation. \\
+	\item \textbf{Implementation.} \\
 	Actually implementing the software, including the rectangular decomposition algorithm, pathfinding algorithm, and the benchmarking framework. If necessary - also the baseline algorithms and map generators. The programming language is C++.
-	\item Benchmarking. \\
+	\item \textbf{Benchmarking.} \\
 	Run our algorithm and the selected baseline algorithms and measure the runtimes and memory usage for different map types, sizes and densities.
-	\item Evaluation. \\
+	\item \textbf{Evaluation.} \\
 	Using the measurements from the previous step, a statistical analysis will be conducted to determine how well our algorithm performs, and in which cases it offers an advantage over established methods.
 \end{enumerate}
 
 \section{State of the Art}
 
 \subsection{Pathfinding on a grid}
-JPS(jump point search)\cite{harabor2011online} is a modification of A* specifically for uniform grids with uniform movement cost. It achieves a speed-up by performing long straight "jumps" and only expanding the nodes where the jump ends (referred to as "\emph{jump points}"). In the tests conducted by the authors of the paper, it managed to be faster than A* by 25-30 times. The same authors improved the algorithm even further by precomputing jump points \cite{harabor2014improving}, using bitwise operations to process whole blocks of tiles at once when scanning for jump points and improving the pruning rules.\\
+JPS(jump point search)~\cite{harabor2011online} is a modification of A* specifically for uniform grids with uniform movement cost. It achieves a speed-up by performing long straight "jumps" and only expanding the nodes where the jump ends (referred to as "\emph{jump points}"). In the tests conducted by the authors of the paper, it managed to be faster than A* by 25-30 times. The same authors improved the algorithm even further by precomputing jump points~\cite{harabor2014improving}, using bitwise operations to process whole blocks of tiles at once when scanning for jump points and improving the pruning rules.\\
 
-HPA*(hierarchical pathfinding A*)\cite{botea2004near} subdivides the map \emph{clusters}: equally sized disjoint squares. It then detects \emph{entrances}, obstacle-free segments along the borders of adjacent clusters. After that, it builds an abstract representation of the map as a graph with entrances as nodes and edges connecting them if they belong to the same cluster and there exists a path between them or if they belong to neighbouring clusters and are separated by the border. This graph is used to calculate the abstract path which is then refined by finding paths between every two consecutive entrances within clusters using the actual map. This method can achieve a 10x speed-up, but requires preprocessing and tends to generate suboptimal paths. \\
+RSR(rectangular symmetry reduction)~\cite{harabor2011path} decomposes the grid into obstacle-free rectangles, but instead of using them as navmesh nodes directly, it keeps the nodes making up the perimeter of rectangles and removes the one in the middle. Then it adds extra edges to perimeter nodes based on the grid connectivity (e.g. if the grid is 4-connected, only the nodes on the opposite sides are connected). This improves the performance of A*, but perimeter nodes still have to traversed normally, to deal with that, the authors suggest pruning the perimeter nodes as well.
 
-There are also derivative algorithms of HPA*, such as HAA*(hierarchical annotated A*)\cite{harabor2008hierarchical}, which takes agent size and traversal capabilities(e.g. can traverse ground but cannot traverse swamp) into account by computing clearance maps for every agent capability, annotating the edges between clusters with maximum clearance and required capabilities. Another algorithm is DHPA*(Dynamic HPA*)\cite{kring2010dhpa} which caches paths from every tile of a cluster to abstract nodes in it and then uses those paths for low-level pathfinding, which allows it to achieve a 10 times speed-up compared to regular HPA*. And if the map is altered, only the caches for the affected clusters need to be recalculated.
+Both JSP and RSR are based on the idea of symmetry, which in this case means existence of paths between two nodes that are different, but have the same length and are therefore essentially equivalent. But search algorithms perform redundant work by evaluating them, thus reducing symmetry leads to improved performance. \\
+
+HPA*(hierarchical pathfinding A*)~\cite{botea2004near} subdivides the map \emph{clusters}: equally sized disjoint squares. It then detects \emph{entrances}, obstacle-free segments along the borders of adjacent clusters. After that, it builds an abstract representation of the map as a graph with entrances as nodes and edges connecting them if they belong to the same cluster and there exists a path between them or if they belong to neighbouring clusters and are separated by the border. This graph is used to calculate the abstract path which is then refined by finding paths between every two consecutive entrances within clusters using the actual map. This method can achieve a 10x speed-up, but requires preprocessing and tends to generate suboptimal paths. \\
+
+There are also derivative algorithms of HPA*, such as HAA*(hierarchical annotated A*)~\cite{harabor2008hierarchical}, which takes agent size and traversal capabilities(e.g. can traverse ground but cannot traverse swamp) into account by computing clearance maps for every agent capability, annotating the edges between clusters with maximum clearance and required capabilities. Another algorithm is DHPA*(Dynamic HPA*)~\cite{kring2010dhpa} which caches paths from every tile of a cluster to abstract nodes in it and then uses those paths for low-level pathfinding, which allows it to achieve a 10 times speed-up compared to regular HPA*. And if the map is altered, only the caches for the affected clusters need to be recalculated. \\
+
+REA*(rectangle expansion A*)~\cite{zhang2016rectangle} uses maps with uniform movement cost, similarly to JPS, processing them as obstacle-free rectangles and only using their boundaries as search nodes. Any point on a boundary can be chosen as a successor, so the path is not restricted to the grid's cardinal directions and can be shorter than grid-optimal, but it is not truly any-angle. In the experiments conducted by the paper's authors, REA* showed that in certain cases it can outperform A* by 25 times, which can rival JPS.
 
 %Polyanya
 
 \subsection{Navigation meshes}
-NEOGEN\cite{oliva2013neogen}
+NEOGEN~\cite{oliva2013neogen}
 
-ECM(explicit corridor maps)\cite{geraerts2010planning} is a navmesh represented as a graph whose edges are arcs of the medial axis of the walkable space and vertices - points where they connect, also annotated with distances to the closest obstacle, allowing the the ECM to take clearances into account.
+ECM(explicit corridor maps)~\cite{geraerts2010planning} is a navmesh represented as a graph whose edges are arcs of the medial axis of the walkable space and vertices - points where they connect, also annotated with distances to the closest obstacle, allowing the the ECM to take clearances into account.
 
 \section{Relevance to the Visual Computing Curriculum}
 This thesis deals with many areas of computer science: algorithms and data structures, robotics and motion planning, graph theory, computational geometry. Not all of them are covered by the visual computing master programme, but the following courses are the most relevant ones:
@@ -53,7 +59,7 @@ This thesis deals with many areas of computer science: algorithms and data struc
 	\item 192.162 Heuristic Optimization Techniques
 \end{itemize}
 
-\nocite{*}
+%\nocite{*}
 \bibliographystyle{plain}
 \bibliography{bibliography}
 \end{document}
