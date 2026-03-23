@@ -1,18 +1,38 @@
 \documentclass{article}
 
+\title{Using rectangular navigation meshes for pathfinding on square grid-based maps}
+\author{Leonid Darovskikh \\
+	\small Supervisor: Markus Sch\"utz
+}
+\date{\today}
+
 \begin{document}
+
+\maketitle
+
 \section{Motivation \& Problem Statement}
+% Square grids are commonly used for pathfinding in many areas, such as mobile robot motion control, microchip routing and video games, in such genres as strategies, role-playing games, roguelikes and automation games. The most commonly used~\cite{cui2011based} algorithm is A*~\cite{hart1968formal}, which is optimal and efficient, but on large maps with many units performing pathfinding simultaneously, even it can have problems. Thus, programmers have been developing ways of accelerating it. One of such ways are navigation meshes~\cite{snook2000simplified}, which subdivide the map into convex polygons and uses them as nodes of graph used to calculate the paths. However, 
+
 \begin{enumerate}
 	\item Grid-based levels are still popular in games, specifically strategies, role-playing games and roguelikes.
 	\item Those genres are the ones that also need pathfinding.
 	\item Pathfinding can be time-intensive, especially for large levels.
 	\item Many ways to accelerate it exist, such as navigation meshes.
 	\item Traditionally navmeshes are triangular, since games use polygons and walkable area can be represented as a large polygon and triangulated, triangulation always exists and for a given polygon corner count there's a fixed number of triangles.
-	\item But what if we can make a rectangle-based navmesh specifically for grid-based maps. Our early experiments show a drastically reduced amount of nodes, fewer nodes - faster search.
-	\item Problem: generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$~\cite{eppstein2009graph} for minimum number of partitions.
+	\item But what if we can make a rectangle-based navmesh specifically for grid-based maps? Our early experiments show a drastically reduced amount of nodes, fewer nodes - faster search.
+	\item Problem: have to generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$~\cite{eppstein2009graph}, where $n$ - number of vertices of the polygon, for minimum number of partitions.
+	\item Problem: other highly performant algorithms already exist. However, these algorithms usually do not use preprocessing, having to traverse the raw grid, which is where the navmeshes win. On the other hand, they support dynamically changing maps (e.g. buildings being created and serving as ew obstacles) ``out of the box'', while the navmesh will have to be rebuilt, therefore a local repair mechanism is necessary to compete with them.
+	\item Problem: finding the exact shortest path on a grid with non-uniform costs seems to be impossible~\cite{de2014note}.
+	\item These are all exciting possibilities for innovation!
 \end{enumerate}
 
 \section{Expected Results/Goal of the Work}
+\begin{enumerate}
+	\item A C++ library implementing pathfinding via a rectangular navmesh on a uniform grid. Should support any-angle pathfinding, dynamic map changes and non-uniform movement costs.
+	\item Benchmarks for different map types and sizes, comparing out algorithm's performance to performances of other algorithms (triangular navmesh, JPS, JPS+, REA*). Which benchmarks exactly: run time, others not decided yet, but there are papers~\cite{sturtevant2012benchmarks} suggesting some ideas.
+	\item If no implementations available, also implement the aforementioned algorithms.
+\end{enumerate}
+
 \section{Methodology}
 \begin{enumerate}
 	\item \textbf{Literature review.} \\
