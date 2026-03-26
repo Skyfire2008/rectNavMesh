@@ -11,34 +11,26 @@
 \maketitle
 
 \section{Motivation \& Problem Statement}
-% Square grids are commonly used for pathfinding in many areas, such as mobile robot motion control, microchip routing and video games, in such genres as strategies, role-playing games, roguelikes and automation games. The most commonly used~\cite{cui2011based} algorithm is A*~\cite{hart1968formal}, which is optimal and efficient, but on large maps with many units performing pathfinding simultaneously, even it can have problems. Thus, programmers have been developing ways of accelerating it. One of such ways are navigation meshes~\cite{snook2000simplified}, which subdivide the map into convex polygons and uses them as nodes of graph used to calculate the paths. However, 
+Square grids are commonly used for pathfinding in many areas, such as mobile robot motion control, microchip routing and video games, in such genres as strategies, role-playing games, roguelikes and automation games. The most commonly used~\cite{cui2011based} algorithm is A*~\cite{hart1968formal}, which is optimal and efficient, but on large maps with many units performing pathfinding simultaneously, even it can have problems. Thus, programmers have been developing ways of accelerating it. One of such ways are navmeshes (navigation meshes)~\cite{snook2000simplified}, which subdivide the map into convex polygons and uses them as nodes of graph used to calculate the paths. Navmeshes commonly use triangles, since navigable areas can be represented as polygons, and every polygon can be triangulated, but in our experiments when the grid is represented as a polygon, subdividing it into rectangles yields far fewer polygons than with triangulation, even when using an suboptimal greedy algorithm. Fewer nodes should result in better performance, which makes rectangular navmeshes a promising approach for pathfinding on square grid-based maps. \\
 
-\begin{enumerate}
-	\item Grid-based levels are still popular in games, specifically strategies, role-playing games and roguelikes.
-	\item Those genres are the ones that also need pathfinding.
-	\item Pathfinding can be time-intensive, especially for large levels.
-	\item Many ways to accelerate it exist, such as navigation meshes.
-	\item Traditionally navmeshes are triangular, since games use polygons and walkable area can be represented as a large polygon and triangulated, triangulation always exists and for a given polygon corner count there's a fixed number of triangles.
-	\item But what if we can make a rectangle-based navmesh specifically for grid-based maps? Our early experiments show a drastically reduced amount of nodes, fewer nodes - faster search.
-	\item Problem: have to generate a rectangular navmesh for a grid. Related to rectilinear polygon decomposition, which is solvable at $O(n^{1.5}logn)$~\cite{eppstein2009graph}, where $n$ - number of vertices of the polygon, for minimum number of partitions.
-	\item Problem: other highly performant algorithms already exist. However, these algorithms usually do not use preprocessing, having to traverse the raw grid, which is where the navmeshes win. On the other hand, they support dynamically changing maps (e.g. buildings being created and serving as ew obstacles) ``out of the box'', while the navmesh will have to be rebuilt, therefore a local repair mechanism is necessary to compete with them.
-	\item Problem: finding the exact shortest path on a grid with non-uniform costs seems to be impossible~\cite{de2014note}.
-	\item These are all exciting possibilities for innovation!
-\end{enumerate}
+However, there are several problems with this approach. Firstly, a rectangular navmesh would have to be generated, which can fortunately be done using a rectilinear polygon decomposition algorithm, which can solve this problem for a minimum amount of partitions~\cite{eppstein2009graph}. Secondly, our approach would have to be competitive with other high-performance pathfinding techniques designed specifically for grids, such as JPS~\cite{harabor2011online} and REA*~\cite{zhang2016rectangle}. These algorithms typically do not preprocess the grid, having to traverse it each time, which is where a navmesh can beat them, since it drastically reduces the node count. However, the fact that they require no preprocessing also means that they support dynamically changing terrain (e.g. buildings being created and serving as new obstacles) ``out of the box'', therefore, to stay competitive, we would have to implement some form of local navmesh repair to also support dynamic environments. Another way in which our technique could outcompete them is by supporting any-angle pathfinding, since they are usually limited by the directions of the grid neighborhood, although modifications of some of those algorithms exist that take care of that~\cite{luo2022improved}. Another feature that we would like our approach to provide is support for maps with non-uniform movement costs (i.e. map tiles can be comprised of different terrain with different cost associated with it), which becomes complicated when paired with any-angle pathfinding~\cite{mitchell1991weighted}. Lastly, a support for multi-agent pathfinding is desirable. \\
 
-\section{Expected Results/Goal of the Work}
-\begin{enumerate}
-	\item A C++ library implementing pathfinding via a rectangular navmesh on a uniform grid. Should support any-angle pathfinding, dynamic map changes and non-uniform movement costs.
-	\item Benchmarks for different map types and sizes, comparing out algorithm's performance to performances of other algorithms (triangular navmesh, JPS, JPS+, REA*). Which benchmarks exactly: run time, others not decided yet, but there are papers~\cite{sturtevant2012benchmarks} suggesting some ideas.
-	\item If no implementations available, also implement the aforementioned algorithms.
-\end{enumerate}
+All of this together provides exciting possibilities for innovation.
+
+\section{Expected Results}
+
+The main result of this thesis will be an C++ library implementing the described pathfinding approach from start to finish. In order to test and debug it, an interactive application with a graphical user interface will also be implemented. It will support generating and editing the maps, calculating the paths and visualizing them. All of the code will be open source and available on Github. \\
+
+To demonstrate that our approach yields an improvement in performance, the thesis will also include benchmarks against established algorithms such as A*, JPS and A* with string-pulling on a triangular navmesh in a variety of scenarios, such as different sizes, types and densities of maps. The recorded values will include run times and path lengths, as well as some other values, to be decided later~\cite{sturtevant2012benchmarks}. Finally, the benchmarks will be evaluated to determine the relationships between different scenarios and the performance gains of our technique. \\
+
+We will also provide reference implementations of those established algorithms, if necessary (e.g. no implementation available or drastically different architecture, affecting the performance). 
 
 \section{Methodology}
 \begin{enumerate}
 	\item \textbf{Literature review.} \\
 	To begin with, an extensive survey of existing algorithms will be conducted in order to determine their strengths and weaknesses.
 	\item \textbf{Formalization and algorithm design.} \\
-	In this step we will decide on the algorithm's capabilities, design it and determine the map representation that it operates on. Also, we will choose map types (e.g. maze, dungeon, cave, etc.) to conduct the benchmarking on as well as selecting the established algorithms to serve as a performance baseline.
+	In this step we will decide on the algorithm's capabilities, design it and determine the map representation that it operates on. Also, we will choose map archetypes (e.g. maze, dungeon, cave, etc.) to conduct the benchmarking on as well as selecting the established algorithms to serve as a performance baseline.
 	\item \textbf{Implementation.} \\
 	Actually implementing the software, including the rectangular decomposition algorithm, pathfinding algorithm, and the benchmarking framework. If necessary - also the baseline algorithms and map generators. The programming language is C++.
 	\item \textbf{Benchmarking.} \\
@@ -49,7 +41,7 @@
 
 \section{State of the Art}
 
-\subsection{Pathfinding on a grid}
+%\subsection{Pathfinding on a grid}
 JPS(jump point search)~\cite{harabor2011online} is a modification of A* specifically for uniform grids with uniform movement cost. It achieves a speed-up by performing long straight "jumps" and only expanding the nodes where the jump ends (referred to as "\emph{jump points}"). In the tests conducted by the authors of the paper, it managed to be faster than A* by 25-30 times. The same authors improved the algorithm even further by precomputing jump points~\cite{harabor2014improving}, using bitwise operations to process whole blocks of tiles at once when scanning for jump points and improving the pruning rules.\\
 
 RSR(rectangular symmetry reduction)~\cite{harabor2011path} decomposes the grid into obstacle-free rectangles, but instead of using them as navmesh nodes directly, it keeps the nodes making up the perimeter of rectangles and removes the one in the middle. Then it adds extra edges to perimeter nodes based on the grid connectivity (e.g. if the grid is 4-connected, only the nodes on the opposite sides are connected). This improves the performance of A*, but perimeter nodes still have to traversed normally, to deal with that, the authors suggest pruning the perimeter nodes as well.
@@ -64,10 +56,10 @@ REA*(rectangle expansion A*)~\cite{zhang2016rectangle} uses maps with uniform mo
 
 %Polyanya
 
-\subsection{Navigation meshes}
-NEOGEN~\cite{oliva2013neogen}
+%\subsection{Navigation meshes}
+%NEOGEN~\cite{oliva2013neogen}
 
-ECM(explicit corridor maps)~\cite{geraerts2010planning} is a navmesh represented as a graph whose edges are arcs of the medial axis of the walkable space and vertices - points where they connect, also annotated with distances to the closest obstacle, allowing the the ECM to take clearances into account.
+%ECM(explicit corridor maps)~\cite{geraerts2010planning} is a navmesh represented as a graph whose edges are arcs of the medial axis of the walkable space and vertices - points where they connect, also annotated with distances to the closest obstacle, allowing the the ECM to take clearances into account.
 
 \section{Relevance to the Visual Computing Curriculum}
 This thesis deals with many areas of computer science: algorithms and data structures, robotics and motion planning, graph theory, computational geometry. Not all of them are covered by the visual computing master programme, but the following courses are the most relevant ones:
