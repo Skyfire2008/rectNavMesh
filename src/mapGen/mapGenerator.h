@@ -5,6 +5,8 @@
 
 #include "../path/map.h"
 
+using namespace path;
+
 class MapGenerator {
    public:
     virtual std::unique_ptr<Map> generate(size_t width, size_t height) = 0;

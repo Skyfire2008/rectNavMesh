@@ -1,6 +1,6 @@
 SRC_DIR := src
 BIN_DIR := bin
-FLAGS 	:= -w -Wall -Wextra
+FLAGS 	:= -g -Wall -Wextra
 
 SRCS := $(shell find $(SRC_DIR) -name *.cpp)
 
