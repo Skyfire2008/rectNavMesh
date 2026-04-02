@@ -2,3 +2,4 @@
 bin
 ui/bin
 ui/node_modules
+/lib/*

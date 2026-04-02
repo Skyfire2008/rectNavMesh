@@ -1,7 +1,9 @@
 # C++ variables
 SRC_DIR 	:= src
 BIN_DIR 	:= bin
-CXXFLAGS 	:= -g -Wall #-Wextra
+CXXFLAGS 	:= -g -Wall -Iinclude #-Wextra
+LDFLAGS  	:= -Llib
+LDLIBS   	:= -lcivetweb-cpp -lcivetweb -lws2_32 -lmswsock -lpthread
 
 # typescript variables
 NODE_PATH 	:= /c/Program Files/nodejs/
@@ -26,17 +28,17 @@ all : server copy-ui
 
 # build the server binary
 server : $(OBJS)
-	g++ $(OBJS) -o $(BIN_DIR)/server.exe -lws2_32
+	g++ $(LDFLAGS) $(OBJS) -o $(BIN_DIR)/server.exe $(LDLIBS)
 
 # build the object files
 $(BIN_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	g++ $(CXXFLAGS) -Iinclude -c $< -o $@
+	g++ $(CXXFLAGS) -c $< -o $@
 
 # build the frontend
 $(UI_BIN)/index.js : $(TS_SRCS)
 	@mkdir -p $(UI_BIN)
-	(cd $(UI_BIN) && npx tsc)
+	(cd ui && npx tsc)
 
 # copy the frontend
 copy-ui: $(UI_BIN)/index.js

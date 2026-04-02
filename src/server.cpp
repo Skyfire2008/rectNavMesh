@@ -1,16 +1,11 @@
-#ifdef _WIN32
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0A00  // This tells the compiler to target Windows 10
-#endif
-#endif
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
 
 #include <filesystem>
 
-#include "httplib.h"
+#include "CivetServer.h"
 #include "mapGen/mapGenerator.h"
 #include "path/greedyDecomp.h"
 #include "path/map.h"
@@ -18,17 +13,29 @@
 namespace fs = std::filesystem;
 
 int main(int argc, char* argv[]) {
+    // FIXME: in debugger, argv[0] will be different
+    // get the path to static html files: <folder with server.exe>/html
     auto exePath = fs::absolute(argv[0]).parent_path();
-    auto htmlPath = exePath / "html";
+    auto htmlPath = (exePath / "html").string();
 
-    httplib::Server server;
+    const char* options[] = {
+        "document_root", htmlPath.c_str(),
+        "listening_ports", "8080",
+        "index_files", "index.html",
+        0};
 
-    if (!server.set_mount_point("/", htmlPath.string())) {
-        fprintf(stderr, "Could not open the folder %s\n", htmlPath.string().c_str());
-        return 1;
+    try {
+        CivetServer server(options);
+
+        while (true) {
+            Sleep(1000);
+        }
+
+    } catch (const CivetException& e) {
+        fprintf(stderr, "Error: %s\n", e.what());
     }
 
-    server.listen("127.0.0.1", 5000);
+    return 0;
 
     /*auto gen = RandomMapGenerator(0.5);
     auto map = gen.generate(10, 10);
@@ -47,6 +54,4 @@ int main(int argc, char* argv[]) {
         auto rect = rectangles->at(i);
         fprintf(stdout, "x: %d, y: %d, width: %d, heigth: %d\n", rect.x, rect.y, rect.width, rect.height);
     }*/
-
-    return 0;
 }
