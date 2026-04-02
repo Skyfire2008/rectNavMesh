@@ -9,7 +9,21 @@
 </head>
 
 <body>
-	<canvas id="mainCanvas" width="1280" height="720" />
+	<div class="column">
+		<div class="row">
+			<select id="generatorSelect"></select>
+			<div>
+				<label for="widthInput">Width:</label>
+				<input type="number" step="1" min="0" id="widthInput" />
+			</div>
+			<div>
+				<label for="heightInput">Height:</label>
+				<input type="number" step="1" min="0" id="heightInput" />
+			</div>
+			<button id="generateButton">Generate!</button>
+		</div>
+		<canvas id="mainCanvas" width="1280" height="720" />
+	</div>
 </body>
 
 </html>
