@@ -4,13 +4,70 @@
 #include <windows.h>
 
 #include <filesystem>
+#include <string>
 
 #include "CivetServer.h"
+#include "json.hpp"
 #include "mapGen/mapGenerator.h"
 #include "path/greedyDecomp.h"
 #include "path/map.h"
 
 namespace fs = std::filesystem;
+using json = nlohmann::json;
+
+class NavMeshHandler : public CivetHandler {
+    bool handlePost(CivetServer* server, struct mg_connection* conn) {
+        auto reqInfo = mg_get_request_info(conn);
+
+        if (reqInfo->content_length <= 0) {
+            fprintf(stderr, "Error: content length not set\n");
+            mg_send_http_error(conn, 411, "Content length required");
+            return true;
+        }
+
+        std::string body;
+        body.reserve(reqInfo->content_length);
+
+        // use the buffer to read the whole payload
+        bool connActive = true;
+        char buffer[1024];
+        long long readBytes = 0;
+        while (readBytes < reqInfo->content_length) {
+            size_t len = reqInfo->content_length - readBytes;
+            if (len > sizeof(buffer)) {
+                len = sizeof(buffer);
+            }
+
+            int lastRead = mg_read(conn, buffer, len);
+            if (lastRead <= 0) {
+                fprintf(stderr, "Error: Could not read data or connection closed\n");
+                connActive = false;
+                break;
+            }
+
+            body.append(buffer);
+
+            readBytes += lastRead;
+        }
+
+        fprintf(stdout, "%s\n", body.c_str());
+
+        auto bodyJson = json::parse(body);
+        auto level = bodyJson["level"];
+        int width = level["width"].get<int>();
+        int height = level["height"].get<int>();
+        std::string hexString = level["tiles"].get<std::string>();
+
+        auto map = path::parseMap(width, height, hexString);
+        printMap(*map);
+
+        if (connActive) {
+            mg_send_http_ok(conn, "text/plain", 0);
+        }
+
+        return true;
+    }
+};
 
 int main(int argc, char* argv[]) {
     // FIXME: in debugger, argv[0] will be different
@@ -26,6 +83,8 @@ int main(int argc, char* argv[]) {
 
     try {
         CivetServer server(options);
+        NavMeshHandler handler;
+        server.addHandler("/navmesh", handler);
 
         while (true) {
             Sleep(1000);

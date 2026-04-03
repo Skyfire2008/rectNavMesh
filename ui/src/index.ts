@@ -3,6 +3,7 @@ let mainCanvas: HTMLCanvasElement;
 let widthInput: HTMLInputElement;
 let heightInput: HTMLInputElement;
 let generateButton: HTMLButtonElement;
+let genGreedyNavMeshButton: HTMLButtonElement;
 
 let ctx: CanvasRenderingContext2D;
 
@@ -36,6 +37,7 @@ window.addEventListener("load", () => {
 	widthInput = <HTMLInputElement>document.getElementById("widthInput");
 	heightInput = <HTMLInputElement>document.getElementById("heightInput");
 	generateButton = <HTMLButtonElement>document.getElementById("generateButton");
+	genGreedyNavMeshButton = <HTMLButtonElement>document.getElementById("genGreedyNavMeshButton");
 
 	//attach event listeners
 	draw = new Draw(mainCanvas, level, 16, 2, "#404040", "#e0ffe0", "#c0c0c0");
@@ -47,6 +49,17 @@ window.addEventListener("load", () => {
 		level = new Level(width, height);
 		draw.setLevel(level);
 		draw.redraw();
+	});
+
+	genGreedyNavMeshButton.addEventListener("click", () => {
+		sendRequest("navmesh", "POST", {
+			level: {
+				width: level.width,
+				height: level.height,
+				tiles: level.toHexString()
+			},
+			algorithm: 0
+		});
 	});
 
 	ctx = mainCanvas.getContext("2d");
