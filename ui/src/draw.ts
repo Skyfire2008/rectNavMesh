@@ -8,6 +8,13 @@ interface Point {
 	y: number;
 }
 
+interface IntRect {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
 class Draw {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
@@ -61,6 +68,19 @@ class Draw {
 				this.drawTile(x, y);
 			}
 		}
+	}
+
+	public drawRects(rects: Array<IntRect>, color: string, padding: number) {
+
+		this.ctx.strokeStyle = color;
+		this.ctx.lineWidth = 1;
+
+		for (const rect of rects) {
+			this.ctx.strokeRect(rect.x * this.tileSize + padding, rect.y * this.tileSize + padding, rect.width * this.tileSize - 2 * padding, rect.height * this.tileSize - 2 * padding);
+		}
+
+		this.ctx.strokeStyle = this.strokeColor;
+		this.ctx.lineWidth = this.strokeWidth;
 	}
 
 	/**

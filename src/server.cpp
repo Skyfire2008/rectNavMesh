@@ -15,6 +15,7 @@
 namespace fs = std::filesystem;
 using json = nlohmann::json;
 
+// TODO: move reading the request body into a separate function
 class NavMeshHandler : public CivetHandler {
     bool handlePost(CivetServer* server, struct mg_connection* conn) {
         auto reqInfo = mg_get_request_info(conn);
@@ -52,6 +53,7 @@ class NavMeshHandler : public CivetHandler {
 
         fprintf(stdout, "%s\n", body.c_str());
 
+        // convert the json to a map
         auto bodyJson = json::parse(body);
         auto level = bodyJson["level"];
         int width = level["width"].get<int>();
@@ -61,8 +63,18 @@ class NavMeshHandler : public CivetHandler {
         auto map = path::parseMap(width, height, hexString);
         printMap(*map);
 
-        if (connActive) {
-            mg_send_http_ok(conn, "text/plain", 0);
+        // calculate the navmesh
+        if (bodyJson["algorithm"].get<int>() == 0) {
+            auto decomp = GreedyDecomp();
+            auto rectangles = decomp.getRectangles(*map);
+            json result = *rectangles;
+            std::string jsonString = result.dump();
+
+            mg_send_http_ok(conn, "application/json", jsonString.length());
+            mg_write(conn, jsonString.c_str(), jsonString.length());
+
+        } else {
+            fprintf(stderr, "Error: Navmesh algorithm %d is not implemented\n", bodyJson["algorithm"].get<int>());
         }
 
         return true;

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "json.hpp"
+using json = nlohmann::json;
+
 namespace geom {
 
 class IntRect {
@@ -15,4 +18,6 @@ class IntRect {
         return area > 0;
     }
 };
+
+void to_json(json& obj, const IntRect& rect);
 }  // namespace geom

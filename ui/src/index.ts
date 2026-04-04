@@ -52,13 +52,15 @@ window.addEventListener("load", () => {
 	});
 
 	genGreedyNavMeshButton.addEventListener("click", () => {
-		sendRequest("navmesh", "POST", {
+		sendRequest<Array<IntRect>>("navmesh", "POST", {
 			level: {
 				width: level.width,
 				height: level.height,
 				tiles: level.toHexString()
 			},
 			algorithm: 0
+		}).then((result) => {
+			draw.drawRects(result, "#ff000080", 4);
 		});
 	});
 
